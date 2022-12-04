@@ -5,7 +5,7 @@ import sys
 
 class Button:
     def __init__(self, screen, pos, text):
-        self.font = pygame.font.Font(os.path.join("resources", "fonts", "Monocraft.otf"), 20)
+        self.font = pygame.font.Font(os.path.join("resources", "fonts", "MacPawFixelText-Medium.ttf"), 20)
         self.screen = screen
         self.x, self.y = pos
         screen_rect = self.screen.get_rect()
@@ -41,11 +41,11 @@ def menu(screen):
         button = Button(screen, (5, 5), "Start")
         button.draw()
 
+        click = True
         if button.rect.collidepoint((mx, my)):
             if click:
                 break
 
-        click = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
