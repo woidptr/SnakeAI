@@ -106,6 +106,7 @@ def vision(game):
     snake = game.snake
     fruit = game.fruit
 
+    # TODO: vision relative to snake head
     # Border vision
     border_n = snake.body[0].y - 1
     border_s = cell_number - snake.body[0].y
@@ -146,7 +147,7 @@ def vision(game):
     size = len(snake.body[:-1])
 
     return [border_n, border_s, border_w, border_e,
-            direction_n, direction_s, direction_w, direction_e,
+            # direction_n, direction_s, direction_w, direction_e,
             fruit_n, fruit_s, fruit_w, fruit_e, fruit_dist,
             size]
 
@@ -187,11 +188,13 @@ def run(genomes, config):
 
     games = []
     nets = []
+    frames = []
 
     for i, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)
         g.fitness = 0
+        frames.append(0)
 
         games.append(Game())
 
@@ -217,18 +220,24 @@ def run(genomes, config):
                     pause = not pause
             if event.type == SCREEN_UPDATE:
                 if not pause:
-                    for j, game in enumerate(games):
+                    for i, game in enumerate(games):
                         game.update()
 
                         if game.check_collision():
-                            genomes[j][1].fitness += 1      # increase the fitness (fruit eaten)
-                        else:
-                            genomes[j][1].fitness -= 10
+                            genomes[i][1].fitness += 1      # increase the fitness (fruit eaten)
+                            frames[i] = 0
+                        
+                        frames[i] += 1
+                        if frames[i] >= 100 and len(game.snake.body) <= 5:
+                            game.failed = True
+                        # else:
+                        #     if frames > 10:
+                        #         genomes[j][1].fitness -= 10     # lower the fitness (assuming it is loop)
 
                         if game.failed:
-                            genomes[j][1].fitness -= 10     # lower the fitness (fail)
-                            games.pop(j)
-                            nets.pop(j)
+                            genomes[i][1].fitness -= 10     # lower the fitness (fail)
+                            games.pop(i)
+                            nets.pop(i)
 
                 # Controls
                     for i, game in enumerate(games):
@@ -260,6 +269,7 @@ def run(genomes, config):
 
         for game in games:
             game.draw_elements()
+            break
 
         if len(games) == 0:
             break
@@ -295,6 +305,6 @@ if __name__ == "__main__":
     # snake = Snake()
 
     SCREEN_UPDATE = pygame.USEREVENT
-    pygame.time.set_timer(SCREEN_UPDATE, 150)
+    pygame.time.set_timer(SCREEN_UPDATE, 10)
 
     p.run(run)
