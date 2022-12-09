@@ -1,7 +1,6 @@
 import os.path
 
 import neat.nn
-import pyray
 import pygame
 from pygame.math import Vector2
 import math
@@ -108,18 +107,35 @@ def vision(game):
 
     # TODO: vision relative to snake head
     # Border vision
-    border_n = snake.body[0].y - 1
-    border_s = cell_number - snake.body[0].y
-    border_w = snake.body[0].x - 1
-    border_e = cell_number - snake.body[0].x
+    if snake.direction == Vector2(0, 1):
+        border_forward = snake.body[0].y - 1
+        border_left = snake.body[0].x - 1
+        border_right = cell_number - snake.body[0].x
+    elif snake.direction == Vector2(0, -1):
+        border_forward = cell_number - snake.body[0].y
+        border_left = cell_number - snake.body[0].x
+        border_right = snake.body[0].x - 1
+    elif snake.direction == Vector2(-1, 0):
+        border_forward = snake.body[0].x - 1
+        border_left = cell_number - snake.body[0].y
+        border_right = snake.body[0].y - 1
+    elif snake.direction == Vector2(1, 0):
+        border_forward = cell_number - snake.body[0].x
+        border_left = cell_number - snake.body[0].y
+        border_right = snake.body[0].y - 1
 
-    print(f"North border: {border_n}")
-    print(f"South border: {border_s}")
-    print(f"West border: {border_w}")
-    print(f"East border: {border_e}")
+    # border_n = snake.body[0].y - 1
+    # border_s = cell_number - snake.body[0].y
+    # border_w = snake.body[0].x - 1
+    # border_e = cell_number - snake.body[0].x
+
+    # print(f"North border: {border_n}")
+    # print(f"South border: {border_s}")
+    # print(f"West border: {border_w}")
+    # print(f"East border: {border_e}")
 
     # Tail vision
-    for segment in snake.body:
+    for segment in snake.body[1:]:
         if snake.body[0].x == segment.x:
             if snake.body[0].y < segment.y:
                 tail_n = abs(snake.body[0].y - segment.y)
@@ -129,24 +145,25 @@ def vision(game):
     tail_s = snake.body[0].y
 
     # Fruit vision
-    fruit_n = 1 if snake.body[0].y < fruit.pos.y else 0
-    fruit_s = 1 if snake.body[0].y > fruit.pos.y else 0
-    fruit_w = 1 if snake.body[0].x > fruit.pos.x else 0
-    fruit_e = 1 if snake.body[0].x < fruit.pos.x else 0
+    fruit_n = 1 if snake.body[0].y < fruit.pos.y else -1
+    fruit_s = 1 if snake.body[0].y > fruit.pos.y else -1
+    fruit_w = 1 if snake.body[0].x > fruit.pos.x else -1
+    fruit_e = 1 if snake.body[0].x < fruit.pos.x else -1
     fruit_dist = math.sqrt(pow(fruit.pos.x - snake.body[0].x, 2) + pow(fruit.pos.y - snake.body[0].y, 2))
 
     print(f"Fruit distance: {fruit_dist}")
 
     # Direction vision
-    direction_n = 1 if snake.direction == Vector2(0, 1) else 0
-    direction_s = 1 if snake.direction == Vector2(0, -1) else 0
-    direction_w = 1 if snake.direction == Vector2(-1, 0) else 0
-    direction_e = 1 if snake.direction == Vector2(1, 0) else 0
+    direction_n = 1 if snake.direction == Vector2(0, 1) else -1
+    direction_s = 1 if snake.direction == Vector2(0, -1) else -1
+    direction_w = 1 if snake.direction == Vector2(-1, 0) else -1
+    direction_e = 1 if snake.direction == Vector2(1, 0) else -1
 
     # Size vision
     size = len(snake.body[:-1])
 
-    return [border_n, border_s, border_w, border_e,
+    return [# border_n, border_s, border_w, border_e,
+            border_forward, border_left, border_right,
             # direction_n, direction_s, direction_w, direction_e,
             fruit_n, fruit_s, fruit_w, fruit_e, fruit_dist,
             size]
@@ -202,11 +219,6 @@ def run(genomes, config):
     #game = Game()
 
     font = pygame.font.Font(os.path.join("resources", "fonts", "Monocraft.otf"), 20)
-
-    while not pyray.window_should_close():
-        pyray.begin_drawing()
-
-        pyray.clear_background(pyray.Color(66, 69, 73))
 
     # Game loop
     while True:
