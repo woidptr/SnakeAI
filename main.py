@@ -105,24 +105,33 @@ def vision(game):
     snake = game.snake
     fruit = game.fruit
 
+    # Obstacles vision
+    obstacles = [-1, -1, -1] # Ahead, Left, Right
+
     # TODO: vision relative to snake head
     # Border vision
+    borders = [-1, -1, -1] # Ahead, Left, Right
+
     if snake.direction == Vector2(0, 1):
-        border_forward = snake.body[0].y - 1
-        border_left = snake.body[0].x - 1
-        border_right = cell_number - snake.body[0].x
+        borders[0] = snake.body[0].y - 1
+        borders[1] = snake.body[0].x - 1
+        borders[2] = cell_number - snake.body[0].x
     elif snake.direction == Vector2(0, -1):
-        border_forward = cell_number - snake.body[0].y
-        border_left = cell_number - snake.body[0].x
-        border_right = snake.body[0].x - 1
+        borders[0] = cell_number - snake.body[0].y
+        borders[1] = cell_number - snake.body[0].x
+        borders[2] = snake.body[0].x - 1
     elif snake.direction == Vector2(-1, 0):
-        border_forward = snake.body[0].x - 1
-        border_left = cell_number - snake.body[0].y
-        border_right = snake.body[0].y - 1
+        borders[0] = snake.body[0].x - 1
+        borders[1] = cell_number - snake.body[0].y
+        borders[2] = snake.body[0].y - 1
     elif snake.direction == Vector2(1, 0):
-        border_forward = cell_number - snake.body[0].x
-        border_left = cell_number - snake.body[0].y
-        border_right = snake.body[0].y - 1
+        borders[0] = cell_number - snake.body[0].x
+        borders[1] = cell_number - snake.body[0].y
+        borders[2] = snake.body[0].y - 1
+    
+    for i, border in enumerate(borders):
+        if border != -1 and obstacles[i] == -1:
+            obstacles[i] = border
 
     # border_n = snake.body[0].y - 1
     # border_s = cell_number - snake.body[0].y
@@ -136,13 +145,30 @@ def vision(game):
 
     # Tail vision
     for segment in snake.body[1:]:
-        if snake.body[0].x == segment.x:
-            if snake.body[0].y < segment.y:
-                tail_n = abs(snake.body[0].y - segment.y)
-            if snake.body[0].y > segment.y:
-                tail_s = abs(snake.body[0].y - segment.y)
-    tail_n = snake.body[0].y - 1
-    tail_s = snake.body[0].y
+        if snake.direction == Vector2(0, 1):        # if snake is moving down
+            if snake.body[0].x == segment.x and snake.body[0].y < segment.y:    # looking ahead for the tail segment
+                if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
+                    obstacles[0] = abs(snake.body[0].y - segment.y)
+            if snake.body[0].y == segment.y and snake.body[0].x < segment.x:   # looking left for the tail segment
+                if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
+                    obstacles[1] = abs(snake.body[0].x - segment.x)
+            if snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking right for the tail segment
+                if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
+                    obstacles[2] = abs(snake.body[0].x - segment.x)
+        elif snake.direction == Vector2(0, -1):     # if snake is moving up
+            if snake.body[0].x == segment.x and snake.body[0].y > segment.y:    # looking ahead for the tail segment
+                if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
+                    obstacles[0] = abs(snake.body[0].y - segment.y)
+            if snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking left for the tail segment
+                if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
+                    obstacles[1] == abs(snake.body[0].x - segment.x)
+            if snake.body[0].y == segment.y and snake.body[0].x < segment.x:    # looking right for the tail segment
+                if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
+                    obstacles[2] == abs(snake.body[0].x - segment.x)
+        elif snake.direction == Vector2(-1, 0):     # if snake is moving left
+            pass
+        elif snake.direction == Vector2(1, 0):      # if snake is moving right
+            pass
 
     # Fruit vision
     fruit_n = 1 if snake.body[0].y < fruit.pos.y else -1
@@ -151,7 +177,7 @@ def vision(game):
     fruit_e = 1 if snake.body[0].x < fruit.pos.x else -1
     fruit_dist = math.sqrt(pow(fruit.pos.x - snake.body[0].x, 2) + pow(fruit.pos.y - snake.body[0].y, 2))
 
-    print(f"Fruit distance: {fruit_dist}")
+    # print(f"Fruit distance: {fruit_dist}")
 
     # Direction vision
     direction_n = 1 if snake.direction == Vector2(0, 1) else -1
@@ -162,11 +188,11 @@ def vision(game):
     # Size vision
     size = len(snake.body[:-1])
 
-    return [# border_n, border_s, border_w, border_e,
-            border_forward, border_left, border_right,
+    return obstacles + [# border_n, border_s, border_w, border_e,
+            # border_forward, border_left, border_right,
             # direction_n, direction_s, direction_w, direction_e,
-            fruit_n, fruit_s, fruit_w, fruit_e, fruit_dist,
-            size]
+            fruit_n, fruit_s, fruit_w, fruit_e, # fruit_dist,
+            ]
 
 
 def controls(game, output):
