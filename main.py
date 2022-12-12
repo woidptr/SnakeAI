@@ -102,8 +102,12 @@ class Game():
 
 
 def vision(game):
+    global cell_number
+
     snake = game.snake
     fruit = game.fruit
+
+    default_dist = cell_number / 2
 
     # Obstacles vision
     obstacles = [-1, -1, -1] # Ahead, Left, Right
@@ -121,43 +125,43 @@ def vision(game):
     # Tail vision
     for segment in snake.body[1:]:
         if snake.direction == Vector2(0, 1):        # if snake is moving down
-            if snake.body[0].x == segment.x and snake.body[0].y < segment.y:    # looking ahead for the tail segment
+            if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:    # looking ahead for the tail segment
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
                     obstacles[0] = abs(snake.body[0].y - segment.y)
-            if snake.body[0].y == segment.y and snake.body[0].x < segment.x:   # looking left for the tail segment
+            if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:   # looking left for the tail segment
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
                     obstacles[1] = abs(snake.body[0].x - segment.x)
-            if snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking right for the tail segment
+            if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking right for the tail segment
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
                     obstacles[2] = abs(snake.body[0].x - segment.x)
         elif snake.direction == Vector2(0, -1):     # if snake is moving up
-            if snake.body[0].x == segment.x and snake.body[0].y > segment.y:    # looking ahead for the tail segment
+            if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:    # looking ahead for the tail segment
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
                     obstacles[0] = abs(snake.body[0].y - segment.y)
-            if snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking left for the tail segment
+            if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].x > segment.x:    # looking left for the tail segment
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
                     obstacles[1] == abs(snake.body[0].x - segment.x)
-            if snake.body[0].y == segment.y and snake.body[0].x < segment.x:    # looking right for the tail segment
+            if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:    # looking right for the tail segment
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
                     obstacles[2] == abs(snake.body[0].x - segment.x)
         elif snake.direction == Vector2(-1, 0):     # if snake is moving left
-            if snake.body[0].y == segment.y and snake.body[0].x > segment.x:
+            if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].y == segment.y and snake.body[0].x > segment.x:
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].x - segment.x):   # looking ahead for the tail segment
                     obstacles[0] = abs(snake.body[0].x - segment.x)
-            if snake.body[0].x == segment.x and snake.body[0].y < segment.y:
+            if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking left for the tail segment
                     obstacles[1] = abs(snake.body[0].y - segment.y)
-            if snake.body[0].x == segment.x and snake.body[0].y > segment.y:
+            if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].y - segment.y):   # looking right for the tail segment
                     obstacles[2] = abs(snake.body[0].y - segment.y)
         elif snake.direction == Vector2(1, 0):      # if snake is moving right
-            if snake.body[0].y == segment.y and snake.body[0].x < segment.x:
+            if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].x - segment.x):   # looking ahead for the tail segment
                     obstacles[0] = abs(snake.body[0].x - segment.x)
-            if snake.body[0].x == segment.x and snake.body[0].y > segment.y:
+            if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking left for the tail segment
                     obstacles[1] = abs(snake.body[0].y - segment.y)
-            if snake.body[0].x == segment.x and snake.body[0].y < segment.y:
+            if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:
                 if obstacles[2] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking right for the tail segment
                     obstacles[2] = abs(snake.body[0].y - segment.y)
 
