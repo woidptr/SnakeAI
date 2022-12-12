@@ -343,12 +343,10 @@ def run(genomes, config):
                             genomes[i][1].fitness -= 10     # lower the fitness (fail)
                             games.pop(i)
                             nets.pop(i)
+                        
+                        output = nets[i].activate(vision(game))     # activating the neural network
 
-                # Controls
-                    for i, game in enumerate(games):
-                        output = nets[i].activate(vision(game))
-
-                        controls(game, output)
+                        controls(game, output)      # controls game based on the output from the neural network
 
                         # if max(output) == output[0]:
                         #     game.snake.direction = Vector2(0, 1)    # Up
