@@ -11,6 +11,10 @@ from menu import menu
 
 
 class Snake():
+    """
+    Snake object
+    """
+
     def __init__(self):
         self.body = [Vector2(7, 10), Vector2(6, 10), Vector2(5, 10)]
         self.direction = Vector2(1, 0)
@@ -20,6 +24,10 @@ class Snake():
         self.new_block = False
 
     def draw_snake(self):
+        """
+        Drawing snake body
+        """
+
         for i, block in enumerate(self.body):
             block_rect = pygame.Rect(block.x * cell_size, block.y * cell_size, cell_size, cell_size)
             if i == 0:
@@ -43,6 +51,9 @@ class Snake():
         pygame.draw.line(screen, (87, 242, 135), start_pos, end_pos, 3)
 
     def move_snake(self):
+        """
+        Move snake in 'self.direction'
+        """
         if self.new_block:
             self.new_block = False
             body_copy = self.body[:]
@@ -56,35 +67,52 @@ class Snake():
 
 
 class Fruit():
+    """
+    Fruit object
+    """
+
     def __init__(self):
         self.reposition()
 
     def draw_fruit(self):
+        """
+        Drawing fruit
+        """
         fruit_rect = pygame.Rect(self.pos.x * cell_size, self.pos.y * cell_size, cell_size, cell_size)
         pygame.draw.rect(screen, (255, 255, 255), fruit_rect)
 
     def reposition(self):
+        """
+        Place fruit in a random spot on the map
+        """
         self.x = random.randint(0, cell_number - 1)
         self.y = random.randint(0, cell_number - 1)
         self.pos = Vector2(self.x, self.y)
 
 
 class Game():
+    """Game object. Combines snake and fruit objects in it."""
+
     def __init__(self):
         self.snake = Snake()
         self.fruit = Fruit()
         self.failed = False
 
     def update(self):
+        """Update snake position."""
+
         self.snake.move_snake()
         #self.check_collision()
         self.check_fail()
 
     def draw_elements(self):
+        """Render elements (snake and fruit)"""
         self.fruit.draw_fruit()
         self.snake.draw_snake()
 
     def check_collision(self):
+        """Check for snake collision with fruit."""
+
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.reposition()
             self.snake.new_block = True
@@ -93,6 +121,8 @@ class Game():
         return False
 
     def check_fail(self):
+        """Check if snake is outside the border or inside it's tail."""
+
         if not 0 <= self.snake.body[0].x < cell_number or not 0 <= self.snake.body[0].y < cell_number:
             self.failed = True
 
@@ -101,7 +131,9 @@ class Game():
                 self.failed = True
 
 
-def vision(game):
+def vision(game) -> list:
+    """Snake vision or it's sensors."""
+
     global cell_number
 
     snake = game.snake
@@ -214,7 +246,7 @@ def vision(game):
         if snake.body[0].x < fruit.pos.x:
             dir_fruit[2] = 1
     
-    elif snake.direction == Vector2(-1, 0):
+    elif snake.direction == Vector2(-1, 0):     # if snake is moving left
         if snake.body[0].x > fruit.pos.x:
             dir_fruit[0] = 1
         elif snake.body[0].x < fruit.pos.x and snake.body[0].y == fruit.pos.y:
@@ -225,7 +257,7 @@ def vision(game):
         if snake.body[0].y > fruit.pos.y:
             dir_fruit[2] = 1
     
-    elif snake.direction == Vector2(1, 0):
+    elif snake.direction == Vector2(1, 0):      # if snake is moving right
         if snake.body[0].x < fruit.pos.x:
             dir_fruit[0] = 1
         elif snake.body[0].x > fruit.pos.x and snake.body[0].y == fruit.pos.y:
@@ -263,6 +295,8 @@ def vision(game):
 
 
 def controls(game, output):
+    """Controls snake based on the neural network output."""
+
     if max(output) == output[0]:    # Left
         if game.snake.direction == Vector2(0, 1):
             game.snake.direction = Vector2(1, 0)
@@ -286,7 +320,7 @@ def controls(game, output):
 
 
 def run(genomes, config):
-    global init, generation
+    global init, generation, highscore
 
     generation += 1
 
@@ -311,7 +345,7 @@ def run(genomes, config):
     font = pygame.font.SysFont("Arial", 20)
     #game = Game()
 
-    font = pygame.font.Font(os.path.join("resources", "fonts", "Monocraft.otf"), 20)
+    font = pygame.font.Font(os.path.join("resources", "fonts", "FixelMedium.ttf"), 20)
 
     # Game loop
     while True:
@@ -343,7 +377,9 @@ def run(genomes, config):
                             genomes[i][1].fitness -= 10     # lower the fitness (fail)
                             games.pop(i)
                             nets.pop(i)
-                        
+                    
+                    # Weird, but somehow fixes "index out of range" so idc
+                    for i, game in enumerate(games):
                         output = nets[i].activate(vision(game))     # activating the neural network
 
                         controls(game, output)      # controls game based on the output from the neural network
@@ -389,12 +425,13 @@ if __name__ == "__main__":
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet,
                                 neat.DefaultStagnation, config_path)
 
-    p = neat.Population(config)
+    p = neat.Population(config)     # creating population
 
     # Setting up pygame
     pygame.init()
-    cell_size = 20
-    cell_number = 30
+    cell_size = 15
+    cell_number = 40
+    top_bar = 150
     screen = pygame.display.set_mode((cell_number * cell_size, cell_number * cell_size))
     pygame.display.set_caption("Snake AI")
     clock = pygame.time.Clock()
@@ -402,6 +439,7 @@ if __name__ == "__main__":
     # Global vars
     init = False
     generation = 0
+    highscore = 0
 
     # game = Game()
     # fruit = Fruit()
@@ -410,4 +448,4 @@ if __name__ == "__main__":
     SCREEN_UPDATE = pygame.USEREVENT
     pygame.time.set_timer(SCREEN_UPDATE, 10)
 
-    p.run(run)
+    p.run(run, 300)      # jumping to the run function and getting the winner
