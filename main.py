@@ -3,6 +3,7 @@ import os.path
 import neat.nn
 import pygame
 from pygame.math import Vector2
+import heapq
 import math
 import random
 import sys
@@ -136,13 +137,14 @@ def vision(game) -> list:
 
     global cell_number
 
-    snake = game.snake
-    fruit = game.fruit
+    snake = game.snake      # getting snake object
+    fruit = game.fruit      # getting fruit object
 
     default_dist = cell_number / 2
 
     # Obstacles vision
-    obstacles = [-1, -1, -1] # Ahead, Left, Right
+    obstacles = [-1, -1, -1]    # Ahead, Left, Right
+    dist_body = [-1, -1, -1]    # Ahead, Left, Right
 
     # border_n = snake.body[0].y - 1
     # border_s = cell_number - snake.body[0].y
@@ -160,42 +162,66 @@ def vision(game) -> list:
             if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:    # looking ahead for the tail segment
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
                     obstacles[0] = abs(snake.body[0].y - segment.y)
+                    if obstacles[0] == 1:
+                        dist_body[0] = 1
             if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:   # looking left for the tail segment
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
                     obstacles[1] = abs(snake.body[0].x - segment.x)
+                    if obstacles[1] == 1:
+                        dist_body[1] = 1
             if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].y == segment.y and snake.body[0].x > segment.x:    # looking right for the tail segment
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
                     obstacles[2] = abs(snake.body[0].x - segment.x)
+                    if obstacles[2] == 1:
+                        dist_body[1] = 1
         elif snake.direction == Vector2(0, -1):     # if snake is moving up
             if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:    # looking ahead for the tail segment
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].y - segment.y):
                     obstacles[0] = abs(snake.body[0].y - segment.y)
+                    if obstacles[0] == 1:
+                        dist_body[0] = 1
             if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].x > segment.x:    # looking left for the tail segment
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].x - segment.x):
                     obstacles[1] == abs(snake.body[0].x - segment.x)
+                    if obstacles[1] == 1:
+                        dist_body[1] = 1
             if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:    # looking right for the tail segment
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].x - segment.x):
                     obstacles[2] == abs(snake.body[0].x - segment.x)
+                    if obstacles[2] == 1:
+                        dist_body[2] = 1
         elif snake.direction == Vector2(-1, 0):     # if snake is moving left
             if (snake.body[0].x - default_dist) <= segment.x and snake.body[0].y == segment.y and snake.body[0].x > segment.x:
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].x - segment.x):   # looking ahead for the tail segment
                     obstacles[0] = abs(snake.body[0].x - segment.x)
+                    if obstacles[0] == 1:
+                        dist_body[0] = 1
             if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking left for the tail segment
                     obstacles[1] = abs(snake.body[0].y - segment.y)
+                    if obstacles[1] == 1:
+                        dist_body[1] = 1
             if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:
                 if obstacles[2] == -1 or obstacles[2] > abs(snake.body[0].y - segment.y):   # looking right for the tail segment
                     obstacles[2] = abs(snake.body[0].y - segment.y)
+                    if obstacles[2] == 1:
+                        dist_body[2] = 1
         elif snake.direction == Vector2(1, 0):      # if snake is moving right
             if (snake.body[0].x + default_dist) >= segment.x and snake.body[0].y == segment.y and snake.body[0].x < segment.x:
                 if obstacles[0] == -1 or obstacles[0] > abs(snake.body[0].x - segment.x):   # looking ahead for the tail segment
                     obstacles[0] = abs(snake.body[0].x - segment.x)
+                    if obstacles[0] == 1:
+                        dist_body[0] = 1
             if (snake.body[0].y - default_dist) <= segment.y and snake.body[0].x == segment.x and snake.body[0].y > segment.y:
                 if obstacles[1] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking left for the tail segment
                     obstacles[1] = abs(snake.body[0].y - segment.y)
+                    if obstacles[1] == 1:
+                        dist_body[1] = 1
             if (snake.body[0].y + default_dist) >= segment.y and snake.body[0].x == segment.x and snake.body[0].y < segment.y:
                 if obstacles[2] == -1 or obstacles[1] > abs(snake.body[0].y - segment.y):   # looking right for the tail segment
                     obstacles[2] = abs(snake.body[0].y - segment.y)
+                    if obstacles[2] == 1:
+                        dist_body[2] = 1
 
     # Border vision
     borders = [-1, -1, -1] # Ahead, Left, Right
@@ -223,50 +249,97 @@ def vision(game) -> list:
 
     # Fruit vision
     dir_fruit = [-1, -1, -1]    # Ahead, Left, Right
+    fruit_dist = Vector2(abs(snake.body[0].x - fruit.pos.x), abs(snake.body[0].y - snake.body[0].y))
+    blocked = [-1, -1, -1]      # Blocked by body (Ahead, Left, Right)
 
     if snake.direction == Vector2(0, 1):    # snake is moving down
         if snake.body[0].y < fruit.pos.y:
-            dir_fruit[0] = 1
+            if obstacles[0] < fruit_dist.y and obstacles[0] != -1:
+                blocked[0] = 1
+            else:
+                dir_fruit[0] = 1
         elif snake.body[0].y > fruit.pos.y and snake.body[0].x == fruit.pos.x:
             dir_fruit[1] == 1
             dir_fruit[2] == 1
         if snake.body[0].x < fruit.pos.x:
-            dir_fruit[1] = 1
+            if obstacles[1] < fruit_dist.x and obstacles[1] != -1:
+                blocked[1] = 1
+            else:
+                dir_fruit[1] = 1
         if snake.body[0].x > fruit.pos.x:
-            dir_fruit[2] = 1
+            if obstacles[2] < fruit_dist.x and obstacles[2] != -1:
+                blocked[2] = 1
+            else:
+                dir_fruit[2] = 1
     
     elif snake.direction == Vector2(0, -1):     # snake is moving up
         if snake.body[0].y > fruit.pos.y:
-            dir_fruit[0] = 1
+            if obstacles[0] < fruit_dist.y and obstacles[0] != -1:
+                blocked[0] = 1
+            else:
+                dir_fruit[0] = 1
         elif snake.body[0].y < fruit.pos.y and snake.body[0].x == fruit.pos.x:
             dir_fruit[1] = 1
             dir_fruit[2] = 1
         if snake.body[0].x > fruit.pos.x:
-            dir_fruit[1] = 1
+            if obstacles[1] < fruit_dist.x and obstacles[1] != -1:
+                blocked[1] = 1
+            else:
+                dir_fruit[1] = 1
         if snake.body[0].x < fruit.pos.x:
-            dir_fruit[2] = 1
+            if obstacles[2] < fruit_dist.x and obstacles[2] != -1:
+                blocked[2] = 1
+            else:
+                dir_fruit[2] = 1
     
     elif snake.direction == Vector2(-1, 0):     # if snake is moving left
         if snake.body[0].x > fruit.pos.x:
-            dir_fruit[0] = 1
+            if obstacles[0] < fruit_dist.x and obstacles[0] != -1:
+                blocked[0] = 1
+            else:
+                dir_fruit[0] = 1
         elif snake.body[0].x < fruit.pos.x and snake.body[0].y == fruit.pos.y:
             dir_fruit[1] = 1
             dir_fruit[2] = 1
         if snake.body[0].y < fruit.pos.y:
-            dir_fruit[1] = 1
+            if obstacles[1] < fruit_dist.y and obstacles[1] != -1:
+                blocked[1] = 1
+            else:
+                dir_fruit[1] = 1
         if snake.body[0].y > fruit.pos.y:
-            dir_fruit[2] = 1
+            if obstacles[2] < fruit_dist.y and obstacles[2] != -1:
+                blocked[2] = 1
+            else:
+                dir_fruit[2] = 1
     
     elif snake.direction == Vector2(1, 0):      # if snake is moving right
         if snake.body[0].x < fruit.pos.x:
-            dir_fruit[0] = 1
+            if obstacles[0] < fruit_dist.x and obstacles[0] != -1:
+                blocked[0] = 1
+            else:
+                dir_fruit[0] = 1
         elif snake.body[0].x > fruit.pos.x and snake.body[0].y == fruit.pos.y:
             dir_fruit[1] = 1
             dir_fruit[2] = 1
         if snake.body[0].y > fruit.pos.y:
-            dir_fruit[1] = 1
+            if obstacles[1] < fruit_dist.y and obstacles[1] != -1:
+                blocked[1] = 1
+            else:
+                dir_fruit[1] = 1
         if snake.body[0].y < fruit.pos.y:
-            dir_fruit[2] = 1
+            if obstacles[2] < fruit_dist.y and obstacles[2] != -1:
+                blocked[2] = 1
+            else:
+                dir_fruit[2] = 1
+    
+    if -1 not in obstacles:
+        dir_fruit = [-1, -1, -1]
+        for i in range(len(obstacles)):
+            dir_fruit[obstacles.index(max(obstacles))] = 1
+
+    elif sum(blocked) > -2 or (1 in blocked and 1 in borders):
+        dir_fruit = [-1, -1, -1]
+        dir_fruit[obstacles.index(-1)] = 1
 
     fruit_n = 1 if snake.body[0].y < fruit.pos.y else -1
     fruit_s = 1 if snake.body[0].y > fruit.pos.y else -1
@@ -274,18 +347,10 @@ def vision(game) -> list:
     fruit_e = 1 if snake.body[0].x < fruit.pos.x else -1
     fruit_dist = math.sqrt(pow(fruit.pos.x - snake.body[0].x, 2) + pow(fruit.pos.y - snake.body[0].y, 2))
 
-    # print(f"Fruit distance: {fruit_dist}")
-
-    # Direction vision
-    direction_n = 1 if snake.direction == Vector2(0, 1) else -1
-    direction_s = 1 if snake.direction == Vector2(0, -1) else -1
-    direction_w = 1 if snake.direction == Vector2(-1, 0) else -1
-    direction_e = 1 if snake.direction == Vector2(1, 0) else -1
-
     # Size vision
     size = len(snake.body[:-1])
 
-    return obstacles + dir_fruit
+    return obstacles + dir_fruit + [size]
 
     """ return obstacles + [# border_n, border_s, border_w, border_e,
             # border_forward, border_left, border_right,
@@ -321,6 +386,7 @@ def controls(game, output):
 
 def run(genomes, config):
     global init, generation, highscore
+    global debug_menu
 
     generation += 1
 
@@ -342,10 +408,8 @@ def run(genomes, config):
 
         games.append(Game())
 
-    font = pygame.font.SysFont("Arial", 20)
-    #game = Game()
-
     font = pygame.font.Font(os.path.join("resources", "fonts", "FixelMedium.ttf"), 20)
+    debug_font = pygame.font.Font(os.path.join("resources", "fonts", "FixelMedium.ttf"), 15)
 
     # Game loop
     while True:
@@ -357,6 +421,8 @@ def run(genomes, config):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     pause = not pause
+                if event.key == pygame.K_g:
+                    debug_menu = not debug_menu
             if event.type == SCREEN_UPDATE:
                 if not pause:
                     for i, game in enumerate(games):
@@ -393,6 +459,8 @@ def run(genomes, config):
                         # elif max(output) == output[3]:
                         #     game.snake.direction = Vector2(1, 0)    # Right
 
+        # display_game = max(net[1].fitness)
+
         if not pause:
             screen.fill((66, 69, 73))
 
@@ -403,9 +471,28 @@ def run(genomes, config):
             score = font.render(f"Score: 0", True, (255, 255, 255))
             screen.blit(score, (5, 25))
 
-        # score_label = font.render("Score: 0", True, (196, 196, 196))
-        # screen.blit(score_label, (50, 50))
+            genomes_set = {}
+            for i, genome in enumerate(genomes):
+                genomes_set.update({
+                    "id": i + 1,
+                    "genome": genome,
+                    "fitness": genome[1].fitness
+                })
+            
+            print(genomes_set)
 
+            best_genomes = heapq.nlargest(5, genomes)
+            if debug_menu:
+                text_pos = 5
+                for i, genome in enumerate(best_genomes):
+                    net_info = debug_font.render(f"ID: {i}, Fitness: {genomes[i][1].fitness}", True, (255, 255, 255))
+                    net_info_rect = net_info.get_rect()
+                    screen_rect = screen.get_rect()
+                    screen.blit(net_info, (screen_rect.right - 120, text_pos))
+                    text_pos += 20
+                    if i == 5:
+                        break
+        
         for game in games:
             game.draw_elements()
             break
@@ -441,11 +528,10 @@ if __name__ == "__main__":
     generation = 0
     highscore = 0
 
-    # game = Game()
-    # fruit = Fruit()
-    # snake = Snake()
+    # Ingame settings
+    debug_menu = False
 
     SCREEN_UPDATE = pygame.USEREVENT
     pygame.time.set_timer(SCREEN_UPDATE, 10)
 
-    p.run(run, 300)      # jumping to the run function and getting the winner
+    p.run(run)      # jumping to the run function and getting the winner
