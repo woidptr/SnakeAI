@@ -1,6 +1,7 @@
 import os.path
 
 import neat.nn
+from neat import checkpoint
 import pygame
 from pygame.math import Vector2
 import heapq
@@ -513,6 +514,8 @@ if __name__ == "__main__":
                                 neat.DefaultStagnation, config_path)
 
     p = neat.Population(config)     # creating population
+
+    checkpointer = checkpoint.Checkpointer(100, "model")    # setup checkpointer to save model
 
     # Setting up pygame
     pygame.init()
