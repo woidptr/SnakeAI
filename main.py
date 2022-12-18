@@ -81,7 +81,7 @@ def run(genomes, config):
                         snake.update()
 
                         if snake.check_collision():
-                            genomes[i][1].fitness += 1      # increase the fitness (fruit eaten)
+                            genomes[i][1].fitness += 100      # increase the fitness (fruit eaten)
                             frames[i] = 0
                         
                         frames[i] += 1
@@ -89,7 +89,7 @@ def run(genomes, config):
                             snake.failed = True
 
                         if snake.failed:
-                            genomes[i][1].fitness -= 10     # lower the fitness (fail)
+                            genomes[i][1].fitness -= 1000     # lower the fitness (fail)
                             snakes.pop(i)
                             nets.pop(i)
                     
@@ -114,8 +114,6 @@ def run(genomes, config):
 
             score_label = font.render(f"Score: 0", True, (255, 255, 255))
             screen.blit(score_label, (5, 25))
-
-            print(score_label.get_rect().y)
 
             highscore_label = font.render(f"Highscore: {highscore}", True, (255, 255, 255))
             screen.blit(highscore_label, (5, 45))
