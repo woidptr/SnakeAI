@@ -100,23 +100,18 @@ def run(genomes, config):
                         controls(snake, output)      # controls game based on the output from the neural network
 
         if not pause:
-            screen.fill((66, 69, 73))
+            screen.fill((66, 69, 73))   # drawing the background
 
             for snake in snakes:
                 snake.draw_elements()
                 break
 
             # Rendering text
-            screen_rect = screen.get_rect()
-
             generation_label = font.render(f"Generation: {generation}", True, (255, 255, 255))
             screen.blit(generation_label, (5, 5))
 
-            score_label = font.render(f"Score: 0", True, (255, 255, 255))
-            screen.blit(score_label, (5, 25))
-
             highscore_label = font.render(f"Highscore: {highscore}", True, (255, 255, 255))
-            screen.blit(highscore_label, (5, 45))
+            screen.blit(highscore_label, (5, 25))
 
         pygame.display.update()
         clock.tick(60)
