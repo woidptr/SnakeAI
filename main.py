@@ -7,7 +7,6 @@ from pygame.math import Vector2
 import heapq
 import sys
 
-from menu import menu
 from snake import Snake
 
 
@@ -44,10 +43,6 @@ def run(genomes, config):
 
     pause = False
 
-    # if not init:
-    #     init = True
-    #     menu(screen)
-
     snakes = []
     nets = []
     frames = []
@@ -79,6 +74,9 @@ def run(genomes, config):
                 if not pause:
                     for i, snake in enumerate(snakes):
                         snake.update()
+
+                        if snake.score > highscore:
+                            highscore = snake.score
 
                         if snake.check_collision():
                             genomes[i][1].fitness += 100      # increase the fitness (fruit eaten)

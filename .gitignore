@@ -1,1 +1,4 @@
 __pycache__/
+main.build/
+main.cmd
+main.exe
