@@ -171,10 +171,10 @@ if __name__ == "__main__":
     SCREEN_UPDATE = pygame.USEREVENT
     pygame.time.set_timer(SCREEN_UPDATE, 10)
 
-    # winner = p.run(run, 45)      # jumping to the run function and getting the winner
+    winner = p.run(run)      # jumping to the run function and getting the winner
 
-    # with open("model.pkl", "wb") as f:
-    #     pickle.dump(winner, f)
-    #     f.close()
+    with open("model.pkl", "wb") as f:
+        pickle.dump(winner, f)
+        f.close()
     
-    replay_genome(config)
+    # replay_genome(config)
