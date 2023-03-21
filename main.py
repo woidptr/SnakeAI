@@ -8,7 +8,13 @@ import pickle
 import heapq
 import sys
 
-from snake import Snake
+# from entities.snake import Snake
+
+from screens.screen_stack import ScreenStack
+from screens.start_screen import StartScreen
+from screens.hud_screen import HudScreen
+from core.brain import Brain
+from screens.font_repo import FontRepository
 
 
 def controls(snake, output):
@@ -49,7 +55,7 @@ def replay_genome(config, model="model.pkl"):
     run(genomes, config)
 
 
-def run(genomes, config):
+def run():
     global init, generation, highscore
     global debug_menu
     global max_fitness, best_genome
@@ -63,19 +69,33 @@ def run(genomes, config):
     nets = []
     frames = []
 
-    for id, genome in genomes:
+    # Setting up NEAT
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, "config-feedforward.txt")
+    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet,
+                                neat.DefaultStagnation, config_path)
+
+    p = neat.Population(config)     # creating population
+    p.add_reporter(neat.Checkpointer(1, 5))
+
+    brain = Brain(p, screen)
+
+    """ for id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         nets.append(net)
         genome.fitness = 0
         frames.append(0)
 
-        snakes.append(Snake(screen))
+        snakes.append(Snake(screen)) """
 
     font = pygame.font.Font(os.path.join("resources", "fonts", "FixelMedium.ttf"), 20)
     debug_font = pygame.font.Font(os.path.join("resources", "fonts", "FixelMedium.ttf"), 15)
+    FontRepository.init()
+
+    ScreenStack.push_screen(StartScreen(screen, brain))
 
     # Game loop
-    while len(snakes) > 0:
+    while True:
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -87,68 +107,23 @@ def run(genomes, config):
                 if event.key == pygame.K_g:
                     debug_menu = not debug_menu
             if event.type == SCREEN_UPDATE:
-                if not pause:
-                    screen.fill((66, 69, 73))   # drawing the background
+                # Making the brain tick
 
-                    for snake in snakes:
-                        snake.draw_elements()
-                        break
+                current_screen = ScreenStack.get_current_screen()
 
-                    screen_rect = screen.get_rect()
+                if (isinstance(current_screen, HudScreen)):
+                    current_screen.brain.tick()
 
-                    if replay:
-                        replay_label = font.render(f"Replay Mode", True, (255, 255, 255))
-                        replay_label_rect = replay_label.get_rect()
-                        screen.blit(replay_label, (screen_rect.centerx - (replay_label_rect.width / 2), 5))
+        # Calling the render function of the current screen
+        ScreenStack.get_current_screen().render()
 
-                        score = snakes[0].score
-                        score_label = font.render(f"Score: {score}", True, (255, 255, 255))
-                        screen.blit(score_label, (5, 25))
-                    else:
-                        # Rendering text
-                        generation_label = font.render(f"Generation: {generation}", True, (255, 255, 255))
-                        screen.blit(generation_label, (5, 5))
-
-                        highscore_label = font.render(f"Highscore: {highscore}", True, (255, 255, 255))
-                        screen.blit(highscore_label, (5, 25))
-
-                    for i, snake in enumerate(snakes):
-                        output = nets[i].activate(snake.vision())     # activating the neural network
-
-                        controls(snake, output)      # controls game based on the output from the neural network
-
-                        snake.update()
-
-                        if snake.score > highscore:
-                            highscore = snake.score
-
-                        if snake.check_collision():
-                            genomes[i][1].fitness += 100      # increase the fitness (fruit eaten)
-                            frames[i] = 0
-                        
-                        frames[i] += 1
-                        if frames[i] >= 100 and len(snake.body) <= 5:
-                            snake.failed = True
-
-                        if snake.failed:
-                            genomes[i][1].fitness -= 1000     # lower the fitness (fail)
-                            snakes.pop(i)
-                            nets.pop(i)
-
+        # Updating the screen in 60 FPS
         pygame.display.update()
         clock.tick(60)
 
 
 # Entry point
 if __name__ == "__main__":
-    # Setting up NEAT
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
-    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet,
-                                neat.DefaultStagnation, config_path)
-
-    p = neat.Population(config)     # creating population
-
     # Setting up pygame
     pygame.init()
     cell_size = 15
@@ -156,6 +131,8 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode((cell_number * cell_size, cell_number * cell_size))
     pygame.display.set_caption("Snake AI")
     clock = pygame.time.Clock()
+
+    # start_screen(screen)
 
     # Global vars
     init = False
@@ -169,12 +146,14 @@ if __name__ == "__main__":
     debug_menu = False
 
     SCREEN_UPDATE = pygame.USEREVENT
-    pygame.time.set_timer(SCREEN_UPDATE, 10)
+    pygame.time.set_timer(SCREEN_UPDATE, 20)
 
-    winner = p.run(run)      # jumping to the run function and getting the winner
+    run()
+
+    """ winner = p.run(run)      # jumping to the run function and getting the winner
 
     with open("model.pkl", "wb") as f:
         pickle.dump(winner, f)
-        f.close()
+        f.close() """
     
     # replay_genome(config)

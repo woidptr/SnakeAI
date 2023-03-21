@@ -3,3 +3,4 @@ main.build/
 main.cmd
 main.exe
 model.pkl
+neat-checkpoint*
