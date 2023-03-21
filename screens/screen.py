@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-# Yes, we are doing it the minecraft way...
+
 class Screen(ABC):
     """Abstract screen class"""
 

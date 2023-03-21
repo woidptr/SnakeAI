@@ -34,7 +34,7 @@ def controls(snake, output):
 class HudScreen(Screen):
     def render(self):
         if not False:
-            self.screen.fill((66, 69, 73))   # drawing the background
+            self.screen.fill((66, 69, 73))
 
             for snake in self.brain.snakes:
                 snake.draw_elements()
@@ -51,32 +51,8 @@ class HudScreen(Screen):
                 score_label = FontRepository.fixel_20.render(f"Score: {score}", True, (255, 255, 255))
                 self.screen.blit(score_label, (5, 25)) """
             else:
-                # Rendering text
                 generation_label = FontRepository.fixel_20.render(f"Generation: {self.brain.generation}", True, (255, 255, 255))
                 self.screen.blit(generation_label, (5, 5))
 
                 highscore_label = FontRepository.fixel_20.render(f"Highscore: {self.brain.highscore}", True, (255, 255, 255))
                 self.screen.blit(highscore_label, (5, 25))
-
-            """ for i, snake in enumerate(self.brain.snakes):
-                output = self.brain.nets[i].activate(snake.vision())     # activating the neural network
-
-                controls(snake, output)      # controls game based on the output from the neural network
-
-                snake.update()
-
-                if snake.score > highscore:
-                    highscore = snake.score
-
-                if snake.check_collision():
-                    self.brain.genomes[i][1].fitness += 100      # increase the fitness (fruit eaten)
-                    self.brain.frames[i] = 0
-                        
-                self.brain.frames[i] += 1
-                if self.brain.frames[i] >= 100 and len(snake.body) <= 5:
-                    snake.failed = True
-
-                if snake.failed:
-                    self.brain.genomes[i][1].fitness -= 1000     # lower the fitness (fail)
-                    self.brain.snakes.pop(i)
-                    self.brain.nets.pop(i) """
